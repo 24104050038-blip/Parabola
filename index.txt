@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="id" class="transition-colors duration-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi & Materi Gerak Parabola</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX untuk rendering rumus matematika -->
+    <!-- Tambahkan KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-nK/g0t7E+c3pE4xL/21E2ZJp2Lp6q2f8I5F0G4J4v5T5Q5I5X5y4I5Z5A5I5X5" crossorigin="anonymous">
+    <!-- Tambahkan KaTeX JS Core -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-qfXpG1F4I3J9D7H3E5E3F5V5F4Z5A5I5X5y4I5Z5A5I5X5" crossorigin="anonymous"></script>
+    <!-- Tambahkan KaTeX Auto-Render Extension (untuk memproses semua rumus) -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-V1F5E1I3J9D7H3E5E3F5V5F4Z5A5I5X5y4I5Z5A5I5X5y4I5Z5A5I5X5" crossorigin="anonymous"></script>
+
+    <style>
+        /* Menggunakan font Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Mode terang default */
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        /* Mode gelap */
+        .dark body {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+        /* Styling kustom untuk canvas */
+        #parabolaCanvas {
+            background-color: #fff;
+            border: 4px solid #3b82f6;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            touch-action: none;
+            width: 100%; /* Penting: agar canvas mengisi wadahnya */
+            height: auto;
+        }
+        .dark #parabolaCanvas {
+            background-color: #111827;
+            border-color: #6366f1;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        /* Styling untuk container konten */
+        .content-container {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            min-height: 600px; /* Minimal tinggi agar terlihat baik */
+        }
+        .dark .content-container {
+            background-color: #374151;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        /* Styling untuk slider */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #ef4444; 
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+        .dark input[type="range"]::-webkit-slider-thumb {
+            background: #f87171; 
+        }
+        /* Formula Styling */
+        .formula {
+            display: block;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background-color: #eef2ff;
+            border-left: 4px solid #4f46e5;
+            overflow-x: auto;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .dark .formula {
+            background-color: #1f2937;
+            border-left-color: #818cf8;
+            color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="p-4 transition-colors duration-300">
+
+    <div id="app-container" class="w-full max-w-7xl mx-auto p-4">
+
+        <!-- Header dan Mode Toggle -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                Gerak Parabola
+            </h1>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-md transition-all duration-300 transform hover:scale-105" title="Toggle Mode Gelap/Terang">
+                <!-- Icon Bulan (Dark) / Matahari (Light) -->
+                <svg id="themeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Default: Sun (Light Mode) -->
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200 dark:border-gray-600 mb-6">
+            <button onclick="showTab('materi')" id="tab-materi" class="py-3 px-6 text-lg font-medium border-b-2 border-transparent text-gray-500 hover:text-indigo-600 hover:border-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:border-indigo-400 transition duration-150">
+                Materi
+            </button>
+            <button onclick="showTab('animasi')" id="tab-animasi" class="py-3 px-6 text-lg font-medium border-b-2 border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 transition duration-150">
+                Animasi & Simulasi
+            </button>
+        </div>
+
+        <!-- Konten Utama (Kontrol dan Canvas) -->
+        <div id="content-materi" class="content-container p-6 hidden">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-gray-800 dark:text-gray-100">Ringkasan Materi Gerak Parabola</h2>
+            <p class="mb-4 text-gray-700 dark:text-gray-300">
+                Gerak Parabola (sering disebut gerak peluru) adalah gerakan benda yang lintasannya berbentuk parabola. Gerak ini merupakan perpaduan antara dua jenis gerak yang tidak saling mempengaruhi:
+                <br><br>
+                1. **Gerak Lurus Beraturan (GLB)** pada sumbu **Horizontal ($x$)**: Kecepatan konstan karena tidak ada gaya horizontal yang bekerja (mengabaikan hambatan udara).
+                2. **Gerak Lurus Berubah Beraturan (GLBB)** pada sumbu **Vertikal ($y$)**: Kecepatan berubah karena dipengaruhi oleh percepatan gravitasi ($g$).
+                [Image of Diagram Gerak Parabola]
+            </p>
+
+            <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800 dark:text-gray-100">Penjabaran Rumus Dasar</h3>
+
+            <ul class="list-disc pl-5 space-y-3 text-gray-700 dark:text-gray-300">
+                <li>
+                    <p class="font-medium">Kecepatan Awal:</p>
+                    <span class="formula">
+                        $v_{0x} = v_0 \cos \alpha$ (Komponen horizontal)
+                    </span>
+                    <span class="formula">
+                        $v_{0y} = v_0 \sin \alpha$ (Komponen vertikal)
+                    </span>
+                </li>
+                <li>
+                    <p class="font-medium">Posisi pada Waktu $t$:</p>
+                    <span class="formula">
+                        $x(t) = v_{0x} t = v_0 \cos \alpha \cdot t$
+                    </span>
+                    <span class="formula">
+                        $y(t) = v_{0y} t - \frac{1}{2} g t^2 = v_0 \sin \alpha \cdot t - \frac{1}{2} g t^2$
+                    </span>
+                </li>
+                <li>
+                    <p class="font-medium">Titik Tertinggi (Waktu dan Posisi Maksimum):</p>
+                    <span class="formula">
+                        $t_{max} = \frac{v_0 \sin \alpha}{g}$
+                    </span>
+                    <span class="formula">
+                        $y_{max} = \frac{v_0^2 \sin^2 \alpha}{2g}$
+                    </span>
+                </li>
+                <li>
+                    <p class="font-medium">Jarak Maksimum (Jangkauan Horizontal):</p>
+                    <span class="formula">
+                        $x_{max} = \frac{v_0^2 \sin(2\alpha)}{g}$
+                    </span>
+                </li>
+            </ul>
+            
+            <h3 class="text-xl font-semibold mt-8 mb-3 text-gray-800 dark:text-gray-100">Contoh Soal</h3>
+            <div class="bg-indigo-100 dark:bg-indigo-900 p-4 rounded-lg shadow">
+                <p class="font-medium text-indigo-900 dark:text-indigo-200">
+                    Sebuah peluru ditembakkan dari permukaan tanah dengan kecepatan awal $v_0 = 40 \text{ m/s}$ dan sudut elevasi $\alpha = 30^\circ$. Jika percepatan gravitasi $g = 10 \text{ m/s}^2$, hitunglah tinggi maksimum ($y_{max}$) dan jarak maksimum ($x_{max}$) yang dicapai peluru!
+                </p>
+                <div class="mt-3 text-sm text-indigo-800 dark:text-indigo-300">
+                    <p class="font-semibold">Penyelesaian:</p>
+                    <p>Diketahui: $v_0 = 40 \text{ m/s}$, $\alpha = 30^\circ$, $g = 10 \text{ m/s}^2$.</p>
+                    <p>
+                        1. Tinggi Maksimum ($y_{max}$):
+                        <span class="formula !text-sm !py-1 !px-2">
+                            $y_{max} = \frac{(40)^2 \sin^2 (30^\circ)}{2 \cdot 10} = \frac{1600 \cdot (0.5)^2}{20} = \frac{1600 \cdot 0.25}{20} = \frac{400}{20} = 20 \text{ meter}$
+                        </span>
+                    </p>
+                    <p>
+                        2. Jarak Maksimum ($x_{max}$):
+                        <span class="formula !text-sm !py-1 !px-2">
+                            $x_{max} = \frac{(40)^2 \sin(2 \cdot 30^\circ)}{10} = \frac{1600 \sin(60^\circ)}{10} = 160 \cdot (0.866) \approx 138.56 \text{ meter}$
+                        </span>
+                    </p>
+                    <p class="font-semibold mt-2">
+                        Jadi, tinggi maksimumnya adalah $20 \text{ m}$ dan jarak maksimumnya adalah $138.56 \text{ m}$.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Konten Animasi (Animasi dan Kontrol Simulasi) -->
+        <div id="content-animasi" class="content-container p-6 flex flex-col lg:flex-row gap-6">
+            
+            <!-- Panel Kontrol -->
+            <div class="w-full lg:w-1/3">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Kontrol Simulasi</h2>
+
+                <!-- Kontrol Kecepatan Awal (v0) -->
+                <div class="mb-4">
+                    <!-- PENGGANTIAN: Menggunakan v₀ (Unicode subscript) -->
+                    <label for="initialVelocity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Kecepatan Awal (v₀): <span id="velocityValue" class="font-semibold text-indigo-600 dark:text-indigo-400">50</span> m/s
+                    </label>
+                    <input type="range" id="initialVelocity" min="10" max="100" value="50" step="1" 
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg accent-indigo-500 dark:bg-gray-600"
+                           oninput="document.getElementById('velocityValue').innerText = this.value; resetSimulation();">
+                </div>
+
+                <!-- Kontrol Sudut Elevasi (alpha) -->
+                <div class="mb-6">
+                    <!-- PENGGANTIAN: Menggunakan α (Unicode alpha) -->
+                    <label for="angle" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Sudut Elevasi (α): <span id="angleValue" class="font-semibold text-indigo-600 dark:text-indigo-400">45</span> °
+                    </label>
+                    <input type="range" id="angle" min="1" max="89" value="45" step="1" 
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500 dark:bg-gray-600"
+                           oninput="document.getElementById('angleValue').innerText = this.value; resetSimulation();">
+                </div>
+
+                <!-- Informasi Hasil Perhitungan -->
+                <div class="bg-indigo-50 dark:bg-indigo-800 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-indigo-700 dark:text-indigo-200 mb-2">Hasil Perhitungan</h3>
+                    <!-- PENGGANTIAN: Menggunakan x_max dan y_max yang sederhana -->
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                        Jarak Maksimum (x_max): <span id="rangeOutput" class="font-bold text-indigo-900 dark:text-indigo-100">...</span> m
+                    </p>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        Tinggi Maksimum (y_max): <span id="heightOutput" class="font-bold text-indigo-900 dark:text-indigo-100">...</span> m
+                    </p>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="mt-6 flex flex-col space-y-3">
+                    <button onclick="startSimulation()" id="startButton"
+                            class="px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-600 transition duration-150 transform hover:scale-[1.02]">
+                        Mulai Animasi
+                    </button>
+                    <button onclick="resetSimulation()"
+                            class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-lg shadow-md hover:bg-rose-600 transition duration-150 transform hover:scale-[1.02]">
+                        Atur Ulang
+                    </button>
+                </div>
+                
+                <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+                    Gravitasi ($g$) diatur pada $9.8 \text{ m/s}^2$.
+                </p>
+            </div>
+
+            <!-- Area Simulasi -->
+            <div id="canvas-wrapper" class="w-full lg:w-2/3 flex justify-center items-center">
+                <canvas id="parabolaCanvas"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Inisialisasi Canvas dan Konteks
+        const canvas = document.getElementById('parabolaCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvas-wrapper'); 
+
+        // Parameter Fisika Default
+        const g = 9.8; // Percepatan Gravitasi (m/s²)
+        let v0 = 50;   // Kecepatan Awal (m/s)
+        let alpha = 45; // Sudut Elevasi (derajat)
+
+        // Variabel Simulasi
+        let time = 0;       // Waktu simulasi
+        let isAnimating = false;
+        let animationFrameId;
+
+        // Skala dan Offset
+        let scaleFactor = 1;
+        let xOffset = 0;
+        let yOffset = 0; 
+
+        // Array untuk menyimpan jejak lintasan
+        let trail = [];
+        const MAX_TRAIL_POINTS = 500; 
+        let isDarkMode = false;
+
+        // Fungsi untuk merender semua rumus matematika menggunakan KaTeX
+        const renderFormulas = () => {
+            // Pastikan renderMathInElement sudah dimuat
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.getElementById('content-materi'), {
+                    // Delimiters: $...$ untuk inline, $$...$$ untuk display
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        };
+        
+        // --- Fungsi Mode Gelap/Terang ---
+
+        const toggleDarkMode = () => {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            html.classList.toggle('dark');
+            isDarkMode = html.classList.contains('dark');
+            
+            // Perbarui ikon
+            if (isDarkMode) {
+                // Ganti ke ikon Bulan (Moon)
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
+            } else {
+                // Ganti ke ikon Matahari (Sun)
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`;
+            }
+
+            // Simpan preferensi pengguna dan gambar ulang canvas dengan warna tema baru
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            // Hanya menggambar ulang jika canvas terlihat
+            if (!document.getElementById('content-animasi').classList.contains('hidden')) {
+                draw();
+            }
+        };
+
+        const loadTheme = () => {
+            // Jika ada tema tersimpan, gunakan itu
+            const savedTheme = localStorage.getItem('theme');
+
+            if (savedTheme === 'dark') {
+                // Tema gelap tersimpan
+                document.documentElement.classList.add('dark');
+                isDarkMode = true;
+            } else {
+                // Tema terang (default atau tersimpan)
+                document.documentElement.classList.remove('dark');
+                isDarkMode = false;
+            }
+            
+            // Panggil toggleDarkMode untuk memastikan ikonnya benar saat dimuat
+            // Kita panggil toggleDarkMode meskipun tema sudah benar untuk sinkronisasi ikon
+            // Tapi kita harus mencegah toggleDarkMode membalik state yang baru saja kita set, 
+            // jadi kita panggil saja fungsi untuk mengatur icon secara langsung:
+            const themeIcon = document.getElementById('themeIcon');
+            if (isDarkMode) {
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
+            } else {
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`;
+            }
+        };
+
+        // --- Fungsi Tab Navigasi ---
+        const showTab = (tabId) => {
+            // Sembunyikan semua konten dan hapus status aktif dari semua tab
+            document.getElementById('content-materi').classList.add('hidden');
+            document.getElementById('content-animasi').classList.add('hidden');
+            document.getElementById('tab-materi').classList.remove('border-indigo-600', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400');
+            document.getElementById('tab-materi').classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400', 'hover:text-indigo-600', 'dark:hover:text-indigo-400');
+            document.getElementById('tab-animasi').classList.remove('border-indigo-600', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400');
+            document.getElementById('tab-animasi').classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400', 'hover:text-indigo-600', 'dark:hover:text-indigo-400');
+
+            // Tampilkan konten yang diminta dan set status aktif
+            const content = document.getElementById(`content-${tabId}`);
+            const tabButton = document.getElementById(`tab-${tabId}`);
+            
+            content.classList.remove('hidden');
+            tabButton.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400', 'hover:text-indigo-600', 'dark:hover:text-indigo-400');
+            tabButton.classList.add('border-indigo-600', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400');
+
+            // Jika pindah ke tab animasi, pastikan canvas di-setup ulang
+            if (tabId === 'animasi') {
+                // Set ulang dan gambar canvas setelah tab ditampilkan
+                setTimeout(resetSimulation, 50); 
+            } else if (tabId === 'materi') {
+                // Render rumus matematika saat tab Materi dibuka
+                setTimeout(renderFormulas, 50); 
+            }
+        };
+
+
+        // Fungsi untuk mengkonversi derajat ke radian
+        const toRadians = (degrees) => degrees * (Math.PI / 180);
+
+        // --- Fungsi Perhitungan Fisika (Tidak Berubah) ---
+        const calculateRange = (v, a) => {
+            const rad = toRadians(a);
+            return (v * v * Math.sin(2 * rad)) / g;
+        };
+
+        const calculateMaxHeight = (v, a) => {
+            const rad = toRadians(a);
+            return (v * v * Math.sin(rad) * Math.sin(rad)) / (2 * g);
+        };
+
+        const calculatePosition = (t, v, a) => {
+            const rad = toRadians(a);
+            const v0x = v * Math.cos(rad);
+            const v0y = v * Math.sin(rad);
+            const x = v0x * t;
+            const y = v0y * t - 0.5 * g * t * t;
+            return { x, y };
+        };
+
+        // --- Fungsi Penyesuaian Canvas dan Skala (FIXED) ---
+        const setCanvasSizeAndScale = () => {
+            // Dapatkan lebar yang tersedia dari kontainer canvas
+            const width = canvasWrapper.clientWidth; 
+            
+            // Atur dimensi canvas (secara programatis)
+            canvas.width = width;
+            canvas.height = width * 0.75; // Mempertahankan rasio aspek 4:3 (kualitas visual yang baik)
+
+            const theoreticalRange = calculateRange(v0, alpha);
+            const theoreticalHeight = calculateMaxHeight(v0, alpha);
+            const maxDimension = Math.max(theoreticalRange, theoreticalHeight);
+            
+            const margin = 50; 
+            const drawableWidth = canvas.width - margin;
+            const drawableHeight = canvas.height - margin;
+            
+            // Hitung faktor skala untuk memastikan lintasan muat di canvas
+            scaleFactor = Math.min(drawableWidth, drawableHeight) / (maxDimension * 1.1);
+
+            // Tentukan offset sumbu X dan Y
+            xOffset = margin / 2;
+            yOffset = canvas.height - (margin / 2);
+        };
+
+        const resetSimulation = () => {
+            if (isAnimating) {
+                cancelAnimationFrame(animationFrameId);
+                isAnimating = false;
+                document.getElementById('startButton').innerText = 'Mulai Animasi';
+                document.getElementById('startButton').classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'bg-gray-400');
+                document.getElementById('startButton').classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+            }
+            
+            v0 = parseFloat(document.getElementById('initialVelocity').value);
+            alpha = parseFloat(document.getElementById('angle').value);
+
+            time = 0;
+            trail = [];
+
+            const range = calculateRange(v0, alpha);
+            const height = calculateMaxHeight(v0, alpha);
+            
+            document.getElementById('rangeOutput').innerText = range.toFixed(2);
+            document.getElementById('heightOutput').innerText = height.toFixed(2);
+
+            setCanvasSizeAndScale();
+            draw();
+        };
+
+        // --- Fungsi Menggambar (Draw) ---
+        const draw = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Tentukan warna berdasarkan mode
+            const axisColor = isDarkMode ? '#6b7280' : '#ccc';
+            const vectorColor = isDarkMode ? '#6366f1' : '#3b82f6';
+            const trailColor = isDarkMode ? 'rgba(129, 140, 248, 0.7)' : 'rgba(79, 70, 229, 0.5)';
+            const projectileFill = isDarkMode ? '#f87171' : '#ef4444'; 
+            const projectileStroke = isDarkMode ? '#b91c1c' : '#b91c1c';
+            const textColor = isDarkMode ? '#f3f4f6' : '#1f2937';
+
+            // 1. Gambar Sumbu Koordinat dan Garis Dasar (Lantai)
+            ctx.beginPath();
+            ctx.strokeStyle = axisColor;
+            ctx.lineWidth = 2;
+            ctx.moveTo(0, yOffset);
+            ctx.lineTo(canvas.width, yOffset);
+            ctx.moveTo(xOffset, 0);
+            ctx.lineTo(xOffset, yOffset);
+            ctx.stroke();
+
+            // 2. Gambar Vektor Kecepatan Awal (V₀)
+            if (time < 0.1) {
+                const armLength = 50; 
+                const rad = toRadians(alpha);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = vectorColor; 
+                ctx.lineWidth = 3;
+                
+                ctx.moveTo(xOffset, yOffset);
+                ctx.lineTo(
+                    xOffset + armLength * Math.cos(rad),
+                    yOffset - armLength * Math.sin(rad)
+                );
+                ctx.stroke();
+                
+                ctx.font = "12px Inter";
+                ctx.fillStyle = vectorColor;
+                // PENGGANTIAN: Menggunakan v₀ dan α di canvas
+                ctx.fillText(`v₀=${v0} m/s, α=${alpha}°`, xOffset + armLength * 0.4, yOffset - armLength * 0.4);
+            }
+
+            // 3. Gambar Jejak Lintasan (Trail)
+            if (trail.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = trailColor; 
+                ctx.lineWidth = 2;
+                
+                ctx.moveTo(xOffset + trail[0].x * scaleFactor, yOffset - trail[0].y * scaleFactor);
+
+                for (let i = 1; i < trail.length; i++) {
+                    const px = xOffset + trail[i].x * scaleFactor;
+                    const py = yOffset - trail[i].y * scaleFactor; 
+                    ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                ctx.fillStyle = trailColor; 
+                trail.forEach(point => {
+                    const px = xOffset + point.x * scaleFactor;
+                    const py = yOffset - point.y * scaleFactor;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 1.5, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+            }
+
+            // 4. Gambar Benda (Peluru/Proyektil)
+            if (trail.length > 0) {
+                const currentPos = trail[trail.length - 1];
+                const px = xOffset + currentPos.x * scaleFactor;
+                const py = yOffset - currentPos.y * scaleFactor;
+                
+                ctx.beginPath();
+                ctx.fillStyle = projectileFill; 
+                ctx.arc(px, py, 8, 0, 2 * Math.PI); 
+                ctx.fill();
+
+                ctx.strokeStyle = projectileStroke;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = textColor;
+                ctx.font = "14px Inter";
+                ctx.fillText(
+                    `t: ${time.toFixed(2)}s, Pos: (${currentPos.x.toFixed(1)}m, ${currentPos.y.toFixed(1)}m)`, 
+                    px + 15, py - 10
+                );
+            }
+        };
+
+        // --- Loop Animasi (Tidak Berubah) ---
+
+        let lastTime = 0;
+        const TIME_SCALE = 1.0; 
+
+        const animate = (timestamp) => {
+            if (!isAnimating) return;
+
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            time += (deltaTime / 1000) * TIME_SCALE; 
+
+            const { x, y } = calculatePosition(time, v0, alpha);
+
+            if (y >= -1 && x <= calculateRange(v0, alpha) * 1.05) { 
+                trail.push({ x, y });
+                if (trail.length > MAX_TRAIL_POINTS) {
+                    trail.shift();
+                }
+
+                draw();
+                animationFrameId = requestAnimationFrame(animate);
+            } else {
+                isAnimating = false;
+                document.getElementById('startButton').innerText = 'Animasi Selesai';
+                document.getElementById('startButton').classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'bg-yellow-500', 'hover:bg-yellow-600');
+                document.getElementById('startButton').classList.add('bg-gray-400');
+                draw();
+            }
+        };
+
+        // --- Fungsi Kontrol Utama ---
+        const startSimulation = () => {
+            const startButton = document.getElementById('startButton');
+            if (isAnimating) {
+                cancelAnimationFrame(animationFrameId);
+                isAnimating = false;
+                startButton.innerText = 'Lanjutkan Animasi';
+                startButton.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+                startButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+            } else if (time > 0 && trail.length > 0) {
+                isAnimating = true;
+                lastTime = performance.now(); 
+                startButton.innerText = 'Jeda Animasi';
+                startButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                startButton.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                animationFrameId = requestAnimationFrame(animate);
+            } else {
+                isAnimating = true;
+                lastTime = performance.now();
+                startButton.innerText = 'Jeda Animasi';
+                startButton.classList.remove('bg-gray-400');
+                startButton.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        };
+
+        // --- Inisialisasi dan Event Listener ---
+
+        window.onload = () => {
+            loadTheme(); // Muat tema yang tersimpan atau default (sekarang defaultnya terang)
+            
+            // Tunggu sebentar untuk memastikan DOM dan CSS layout selesai dihitung
+            setTimeout(() => {
+                showTab('animasi'); // Tampilkan tab animasi sebagai default
+                resetSimulation();
+            }, 100); 
+        };
+
+        window.addEventListener('resize', () => {
+            // Pastikan hanya reset jika tab animasi yang aktif
+            if (!document.getElementById('content-animasi').classList.contains('hidden')) {
+                resetSimulation();
+            }
+        });
+
+    </script>
+</body>
+</html>
